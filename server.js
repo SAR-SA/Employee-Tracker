@@ -158,46 +158,46 @@ connection.connect(function (err) {
                 }
 
                 inquirer
-                .prompt([
-                    {
-                        name: 'first_name',
-                        message: "what's the employees First Name",
-                        type: 'input'
-                    },
-                    {
-                        name: 'last_name',
-                        message: 'What is their last name?',
-                        type: 'input',
-                    },
-                    {
-                        name: 'role_id',
-                        message: 'What is their role?',
-                        type: 'list',
-                        choices: role,
-                    },
-                    {
-                        name: 'manager_id',
-                        message: "Who is their manager?",
-                        type: 'list',
-                        choices: ['none'].concat(employee)
-                    }
-                ]).then(function ({ first_name, last_name, role_id, manager_id}) {
-                    let queryText = `INSERT INTO employees (first_name, last_name, role_id`;
-                    if (manager_id != 'none') {
-                        queryText += `, manager_id) VALUES ('${first_name}', '${last_name}', ${role.indexOf(role_id)}, ${employee.indexOf(manager_id) +1})`
-                    } else {
-                        queryText += `) VALUES ('${first_name}', '${last_name}', ${role.indexOf(role_id) + 1})`
-                    }
-                    console.log("\n");
-                    console.log(queryText);
-                    console.log("\n")
+                    .prompt([
+                        {
+                            name: 'first_name',
+                            message: "what's the employees First Name",
+                            type: 'input'
+                        },
+                        {
+                            name: 'last_name',
+                            message: 'What is their last name?',
+                            type: 'input',
+                        },
+                        {
+                            name: 'role_id',
+                            message: 'What is their role?',
+                            type: 'list',
+                            choices: role,
+                        },
+                        {
+                            name: 'manager_id',
+                            message: "Who is their manager?",
+                            type: 'list',
+                            choices: ['none'].concat(employee)
+                        }
+                    ]).then(function ({ first_name, last_name, role_id, manager_id }) {
+                        let queryText = `INSERT INTO employees (first_name, last_name, role_id`;
+                        if (manager_id != 'none') {
+                            queryText += `, manager_id) VALUES ('${first_name}', '${last_name}', ${role.indexOf(role_id)}, ${employee.indexOf(manager_id) + 1})`
+                        } else {
+                            queryText += `) VALUES ('${first_name}', '${last_name}', ${role.indexOf(role_id) + 1})`
+                        }
+                        console.log("\n");
+                        console.log(queryText);
+                        console.log("\n")
 
-                    connection.query(queryText, function (err, data){
-                        if (err) throw err;
+                        connection.query(queryText, function (err, data) {
+                            if (err) throw err;
 
-                        runStart();
+                            runStart();
+                        })
                     })
-                })
             })
         })
 
@@ -207,35 +207,70 @@ connection.connect(function (err) {
         let employeeList = [];
         connection.query(
             "SELECT employees.first_name, employees.last_name FROM employees", (err, res) => {
-                for (let i = 0; i < res.length; i++){
+                for (let i = 0; i < res.length; i++) {
                     employeeList.push(res[i].first_name + " " + res[i].last_name);
                 }
                 inquirer
-                .prompt([
-                    {
-                        type: "list", 
-                        message: "Which employee would you like to delete?",
-                        name: "employee",
-                        choices: employeeList
-                  
-                      },
-                ])
-                .then (function(res){
-                    connection.query(
-                      `DELETE FROM employees WHERE concat(first_name, ' ' ,last_name) = '${res.employee}'`,
-                        function(err, res) {
-                        if (err) throw err;
-                        console.log( "\n\n Employee deleted!\n");
-                     runStart();
-                        });
+                    .prompt([
+                        {
+                            type: "list",
+                            message: "Which employee would you like to delete?",
+                            name: "employee",
+                            choices: employeeList
+
+                        },
+                    ])
+                    .then(function (res) {
+                        connection.query(
+                            `DELETE FROM employees WHERE concat(first_name, ' ' ,last_name) = '${res.employee}'`,
+                            function (err, res) {
+                                if (err) throw err;
+                                console.log("\n\n Employee deleted!\n");
+                                runStart();
+                            });
                     });
             }
         )
     };
 
     function updateEmployeeRole() {
+        role = [1, 2, 3, 4, 5, 6, 7,]
+        connection.query("SELECT first_name, last_name, id FROM employees",
+            function (err, res) {
+                if (err) throw err;
+                // for (let i=0; i <res.length; i++){
+                //   employees.push(res[i].first_name + " " + res[i].last_name);
+                // }
+                let employees = res.map(employee => ({ name: employee.first_name + " " + employee.last_name, value: employee.id }))
+                // let role = res.map(role => ({ name: roles.title, value: role.id }))
+                inquirer
+                    .prompt([
+                        {
+                            type: "list",
+                            name: "employeeName",
+                            message: "Which employee's role would you like to update?",
+                            choices: employees
+                        },
+                        {
+                            type: "list",
+                            name: "role",
+                            message: "What's thier new role ID?",
+                            choices: role
+                        }
+                    ])
+                    .then(function (res) {
+                        connection.query(`UPDATE employees SET role_id = ${res.role} WHERE id = ${res.employeeName}`,
+                            function (err, res) {
+                                if (err) throw err;
+                                console.log("\nRole Updated\n");
+                                //updateRole(res);
+                                runStart()
+                            }
+                        );
+                    })
+            });
+    }
 
-    };
 
     function updateEmployeeManager() {
 
