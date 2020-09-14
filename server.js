@@ -50,10 +50,12 @@ connection.connect(function (err) {
                     "View All Employees",
                     "View All Employees BY Department",
                     "View All Employees By Manager",
+                    "View Roles",
                     "Add Employee",
                     "Remove Employee",
                     "Update Employee Role",
-                    "Update Employee Manager",
+                    "Add Role",
+                    // "Add department",
                     "Exit"
                     //Bonus
                 ]
@@ -72,6 +74,10 @@ connection.connect(function (err) {
                         viewEmployeesManager();
                         break;
 
+                    case "View Roles":
+                        viewRoles();
+                        break;
+
                     case "Add Employee":
                         addEmployee();
                         break;
@@ -84,9 +90,14 @@ connection.connect(function (err) {
                         updateEmployeeRole();
                         break;
 
-                    case "Update Employee Manager":
-                        updateEmployeeManager();
+                    case "Add Role":
+                        addRole();
                         break;
+
+                    // case "Add Role":
+                    //     addDepartment();
+                    //     break;
+
                     case "Exit":
                         connection.end();
                         break;
@@ -109,6 +120,7 @@ connection.connect(function (err) {
             });
     }
 
+
     function viewEmployeesDepartment() {
         console.log("\n\n")
         connection.query("SELECT departments.name AS \"Department\", employees.first_name, employees.last_name, roles.title "
@@ -126,7 +138,7 @@ connection.connect(function (err) {
 
     function viewEmployeesManager() {
         console.log("\n\n")
-        connection.query("SELECT employees.first_name, employees.last_name, roles.title, managers.first_name AS \"manager\", departments.name AS \"Department\" "
+        connection.query("SELECT managers.first_name AS \"manager\", employees.first_name, employees.last_name, roles.title, departments.name AS \"Department\" "
             + "FROM employees "
             + "LEFT JOIN roles ON employees.role_id = roles.id "
             + "LEFT JOIN departments ON roles.department_id = departments.id "
@@ -138,6 +150,21 @@ connection.connect(function (err) {
                 runStart();
             });
     };
+
+    function viewRoles() {
+        console.log("\n\n")
+        connection.query("SELECT roles.id AS \"Role ID\", roles.title "
+            + "FROM employees "
+            + "LEFT JOIN roles ON employees.role_id = roles.id "
+            + "LEFT JOIN departments ON roles.department_id = departments.id "
+            + "LEFT JOIN employees managers ON employees.manager_id = managers.id GROUP BY employees.id",
+            function (err, res) {
+                if (err) throw err;
+                // Log all results of the SELECT statement
+                console.table(res);
+                runStart();
+            });
+    }
 
     function addEmployee() {
         let employee = [];
@@ -188,9 +215,8 @@ connection.connect(function (err) {
                         } else {
                             queryText += `) VALUES ('${first_name}', '${last_name}', ${role.indexOf(role_id) + 1})`
                         }
-                        console.log("\n");
-                        console.log(queryText);
-                        console.log("\n")
+                        console.log("\nEmployee Added!\n");
+
 
                         connection.query(queryText, function (err, data) {
                             if (err) throw err;
@@ -272,10 +298,77 @@ connection.connect(function (err) {
     }
 
 
-    function updateEmployeeManager() {
+    function addRole() {
+        let departments = [];
+        connection.query("SELECT * FROM departments",
+            function (err, res) {
+                if (err) throw err;
+                for (let i = 0; i < res.length; i++) {
+                    res[i].first_name + " " + res[i].last_name
+                    departments.push({ name: res[i].name, value: res[i].id });
+                }
+                inquirer
+                    .prompt([
+                        {
+                            type: "input",
+                            name: "title",
+                            message: "What role would you like to add?"
+                        },
+                        {
+                            type: "input",
+                            name: "salary",
+                            message: "What is the salary for the role?"
+                        },
+                        {
+                            type: "list",
+                            name: "department",
+                            message: "what department?",
+                            choices: departments
+                        }
+                    ])
+                    .then(function (res) {
+                        console.log(res);
+                        connection.query(
+                            "INSERT INTO roles SET ?",
+                            {
+                                title: res.title,
+                                salary: res.salary,
+                                department_id: res.department
+                            },
+                            function (err, res) {
+                                if (err) throw err;
+                                runStart();
+                            }
+                        )
+                    })
+            })
+    }
 
-    };
-
-
+    // function addDepartment() {
+    //     connection.query("SELECT * FROM departments",
+    //     function (err, res) {
+    //         inquirer
+    //             .prompt([
+    //                 {
+    //                     type: "input",
+    //                     name: "department",
+    //                     message: "what department would you like to add?",
+    //                 }
+    //             ])
+    //             .then(function (res) {
+    //                 console.log(res);
+    //                 connection.query(
+    //                     "INSERT INTO departments SET ?",
+    //                     {
+    //                         department: res.name,
+    //                     },
+    //                     function (err, res) {
+    //                         if (err) throw err;
+    //                         runStart();
+    //                     }
+    //                 )
+    //             })
+    //     )
+    // }
 
 });
