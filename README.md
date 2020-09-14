@@ -27,8 +27,6 @@ MIT License
 ## Authors<a id="authorgo"></a>
 
 Shawn A. Rather
-## Tests<a id="testsgo"></a>
-
 
 ## Questions<a id="contactgo"></a>
 
