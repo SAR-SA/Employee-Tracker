@@ -1,6 +1,9 @@
 # Employee Tracker
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+![](assets/EmployeeTracker.JPG)
+
 ## Table of Contents
 - [Description](#descriptiongo)
 - [Installation Instructions](#installgo)
